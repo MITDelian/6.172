@@ -209,12 +209,47 @@ void bitarray_reverse(bitarray_t *const bitarray,
                      const size_t bit_length) {
 	size_t idx1 = bit_offset;
 	size_t idx2 = bit_offset + bit_length - 1;
-	size_t limit = bit_offset + (bit_length >> 1);
+	size_t limit = bit_offset + (bit_length >> 1) - 8;
+	if (bit_offset + (bit_length >> 1) <= 16)
+		goto skip_bitwise;
+
+	char buf1 = bitarray->buf[idx1 >> 3];
+	char buf2 = bitarray->buf[idx2 >> 3];
 	while (idx1 < limit) {
-		bool t = bitarray_get(bitarray, idx1);
-		bool t2 = bitarray_get(bitarray, idx2);
-		bitarray_set(bitarray, idx2, t);
-		bitarray_set(bitarray, idx1, t2);
+		size_t idx1b = idx1 >> 3;
+		size_t idx2b = idx2 >> 3;
+		const char bm1 = bitmask(idx1);
+		const char bm2 = bitmask(idx2);
+		bool t = buf1 & bm1;
+		bool t2 = buf2 & bm2;
+		buf2 = (buf2 & ~bm2) | (t ? bm2 : 0);
+		//bitarray_set(bitarray, idx2, t);
+		buf1 = (buf1 & ~bm1) | (t2 ? bm1 : 0);
+		//bitarray_set(bitarray, idx1, t2);
+		if (!(idx2 & 7)) {
+			bitarray->buf[idx2b] = buf2;
+			buf2 = bitarray->buf[idx2b-1];
+		}
+		idx1++;
+		idx2--;
+		if (!(idx1 & 7)) {
+			bitarray->buf[idx1b] = buf1;
+			buf1 = bitarray->buf[idx1b+1];
+		}
+	}
+
+skip_bitwise:
+	while (idx1 < limit + 8) {
+		size_t idx1b = idx1 >> 3;
+		size_t idx2b = idx2 >> 3;
+		const char bm1 = bitmask(idx1);
+		const char bm2 = bitmask(idx2);
+		bool t = bitarray->buf[idx1b] & bm1;
+		bool t2 = bitarray->buf[idx2b] & bm2;
+		bitarray->buf[idx2b] = (bitarray->buf[idx2b] & ~bm2) | (t ? bm2 : 0);
+		//bitarray_set(bitarray, idx2, t);
+		bitarray->buf[idx1b] = (bitarray->buf[idx1b] & ~bm1) | (t2 ? bm1 : 0);
+		//bitarray_set(bitarray, idx1, t2);
 		idx1++;
 		idx2--;
 	}
