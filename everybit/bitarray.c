@@ -10,6 +10,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
+
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -190,13 +191,38 @@ void bitarray_rotate(bitarray_t *const bitarray,
            modulo(-bit_right_amount, bit_length));
 }
 
+// Reverse bits chars at a time, broken on most cases
+void bitarray_reverse_8(bitarray_t *const bitarray,
+                     const size_t bit_offset,
+                     const size_t bit_length) {
+	char tmp = 0;
+	char* buf = bitarray->buf + bit_offset / 8;
+	for (int n = 0; n < bit_length / 2 / 8; n++) {
+		tmp = buf[n];
+		buf[n] = buf[bit_length - n - 1];
+		buf[bit_length - n - 1] = tmp;
+	}
+}
+
+void bitarray_reverse(bitarray_t *const bitarray,
+                     const size_t bit_offset,
+                     const size_t bit_length) {
+	for (int n = 0; n < bit_length / 2; n++) {
+	        const size_t idx1 = bit_offset + n;
+	        const size_t idx2 = bit_offset + bit_length - n - 1;
+		bool t = bitarray_get(bitarray, idx1);
+		bitarray_set(bitarray, idx1, bitarray_get(bitarray, idx2));
+		bitarray_set(bitarray, idx2, t);
+	}
+}
+
 static void bitarray_rotate_left(bitarray_t *const bitarray,
                                  const size_t bit_offset,
                                  const size_t bit_length,
                                  const size_t bit_left_amount) {
-  for (size_t i = 0; i < bit_left_amount; i++) {
-    bitarray_rotate_left_one(bitarray, bit_offset, bit_length);
-  }
+	bitarray_reverse(bitarray, bit_offset, bit_left_amount);
+	bitarray_reverse(bitarray, bit_offset + bit_left_amount, bit_length - bit_left_amount);
+	bitarray_reverse(bitarray, bit_offset, bit_length);
 }
 
 static void bitarray_rotate_left_one(bitarray_t *const bitarray,
