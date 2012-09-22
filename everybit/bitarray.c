@@ -245,12 +245,10 @@ skip_bitwise:
 		idx2b = idx2 >> 3;
 		const char bm1 = BITMASK_L(idx1);
 		const char bm2 = BITMASK_L(idx2);
-		bool t = bitarray->buf[idx1b] & bm1;
-		bool t2 = bitarray->buf[idx2b] & bm2;
-		bitarray->buf[idx2b] = (bitarray->buf[idx2b] & ~bm2) | (t ? bm2 : 0);
-		//bitarray_set(bitarray, idx2, t);
-		bitarray->buf[idx1b] = (bitarray->buf[idx1b] & ~bm1) | (t2 ? bm1 : 0);
-		//bitarray_set(bitarray, idx1, t2);
+		char t1 = bitarray->buf[idx1b] & bm1;
+		char t2 = bitarray->buf[idx2b] & bm2;
+		bitarray->buf[idx1b] = (bitarray->buf[idx1b] ^ t1 ) | (t2 ? bm1 : 0);
+		bitarray->buf[idx2b] = (bitarray->buf[idx2b] & ~bm2) | (t1 ? bm2 : 0);
 		idx1++;
 		idx2--;
 	}
