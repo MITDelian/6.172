@@ -223,10 +223,10 @@ void bitarray_reverse(bitarray_t *const bitarray,
 		idx2b = idx2 >> 3;
 		const char bm1 = BITMASK_L(idx1);
 		const char bm2 = BITMASK_L(idx2);
-		bool t = buf1 & bm1;
-		bool t2 = buf2 & bm2;
-		buf2 = (buf2 & ~bm2) | (t ? bm2 : 0);
-		buf1 = (buf1 & ~bm1) | (t2 ? bm1 : 0);
+		char t = buf1 & bm1;
+		char t2 = buf2 & bm2;
+		buf1 = (buf1 ^ t) | (t2 ? bm1 : 0);
+		buf2 = (buf2 ^ ~bm2) | (t ? bm2 : 0);
 		if (!(idx2 & 7)) {
 			bitarray->buf[idx2b] = buf2;
 			buf2 = bitarray->buf[idx2b-1];
