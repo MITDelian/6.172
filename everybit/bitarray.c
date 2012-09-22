@@ -107,6 +107,7 @@ static size_t modulo(const ssize_t n, const size_t m);
 // to access bits in your bitarray, this reverse representation should
 // not matter.
 static char bitmask(const size_t bit_index);
+#define BITMASK_L(idx) (1 << ((idx) & 7))
 
 
 // ******************************* Functions ********************************
@@ -209,23 +210,23 @@ void bitarray_reverse(bitarray_t *const bitarray,
                      const size_t bit_length) {
 	size_t idx1 = bit_offset;
 	size_t idx2 = bit_offset + bit_length - 1;
-	size_t limit = bit_offset + (bit_length >> 1) - 8;
+	const size_t limit = bit_offset + (bit_length >> 1) - 8;
 	if (bit_offset + (bit_length >> 1) <= 16)
 		goto skip_bitwise;
 
 	char buf1 = bitarray->buf[idx1 >> 3];
 	char buf2 = bitarray->buf[idx2 >> 3];
+	size_t idx1b;
+	size_t idx2b;
 	while (idx1 < limit) {
-		size_t idx1b = idx1 >> 3;
-		size_t idx2b = idx2 >> 3;
-		const char bm1 = bitmask(idx1);
-		const char bm2 = bitmask(idx2);
+		idx1b = idx1 >> 3;
+		idx2b = idx2 >> 3;
+		const char bm1 = BITMASK_L(idx1);
+		const char bm2 = BITMASK_L(idx2);
 		bool t = buf1 & bm1;
 		bool t2 = buf2 & bm2;
 		buf2 = (buf2 & ~bm2) | (t ? bm2 : 0);
-		//bitarray_set(bitarray, idx2, t);
 		buf1 = (buf1 & ~bm1) | (t2 ? bm1 : 0);
-		//bitarray_set(bitarray, idx1, t2);
 		if (!(idx2 & 7)) {
 			bitarray->buf[idx2b] = buf2;
 			buf2 = bitarray->buf[idx2b-1];
@@ -240,10 +241,10 @@ void bitarray_reverse(bitarray_t *const bitarray,
 
 skip_bitwise:
 	while (idx1 < limit + 8) {
-		size_t idx1b = idx1 >> 3;
-		size_t idx2b = idx2 >> 3;
-		const char bm1 = bitmask(idx1);
-		const char bm2 = bitmask(idx2);
+		idx1b = idx1 >> 3;
+		idx2b = idx2 >> 3;
+		const char bm1 = BITMASK_L(idx1);
+		const char bm2 = BITMASK_L(idx2);
 		bool t = bitarray->buf[idx1b] & bm1;
 		bool t2 = bitarray->buf[idx2b] & bm2;
 		bitarray->buf[idx2b] = (bitarray->buf[idx2b] & ~bm2) | (t ? bm2 : 0);
