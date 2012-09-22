@@ -91,6 +91,11 @@ ifneq ($(OLD_MODE),release)
 $(shell echo release >.buildmode)
 endif
 endif
+ifeq ($(PROFILE),1)
+CFLAGS += -DDEBUG -ftest-coverage -fprofile-arcs
+EXTRA_LDFLAGS += -ftest-coverage -fprofile-arcs
+$(shell echo profile >.buildmode)
+endif
 
 
 # By default, make the product.

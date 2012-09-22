@@ -154,7 +154,7 @@ bool bitarray_get(const bitarray_t *const bitarray, const size_t bit_index) {
   // get the byte; we then bitwise-and the byte with an appropriate mask
   // to produce either a zero byte (if the bit was 0) or a nonzero byte
   // (if it wasn't).  Finally, we convert that to a boolean.
-  return (bitarray->buf[bit_index / 8] & bitmask(bit_index)) ?
+  return (bitarray->buf[bit_index >> 3] & bitmask(bit_index)) ?
              true : false;
 }
 
@@ -170,8 +170,8 @@ void bitarray_set(bitarray_t *const bitarray,
   // get the byte; we then bitwise-and the byte with an appropriate mask
   // to clear out the bit we're about to set.  We bitwise-or the result
   // with a byte that has either a 1 or a 0 in the correct place.
-  bitarray->buf[bit_index / 8] =
-      (bitarray->buf[bit_index / 8] & ~bitmask(bit_index)) |
+  bitarray->buf[bit_index >> 3] =
+      (bitarray->buf[bit_index >> 3] & ~bitmask(bit_index)) |
            (value ? bitmask(bit_index) : 0);
 }
 
@@ -207,12 +207,16 @@ void bitarray_reverse_8(bitarray_t *const bitarray,
 void bitarray_reverse(bitarray_t *const bitarray,
                      const size_t bit_offset,
                      const size_t bit_length) {
-	for (int n = 0; n < bit_length / 2; n++) {
-	        const size_t idx1 = bit_offset + n;
-	        const size_t idx2 = bit_offset + bit_length - n - 1;
+	size_t idx1 = bit_offset;
+	size_t idx2 = bit_offset + bit_length - 1;
+	size_t limit = bit_offset + (bit_length >> 1);
+	while (idx1 < limit) {
 		bool t = bitarray_get(bitarray, idx1);
-		bitarray_set(bitarray, idx1, bitarray_get(bitarray, idx2));
+		bool t2 = bitarray_get(bitarray, idx2);
 		bitarray_set(bitarray, idx2, t);
+		bitarray_set(bitarray, idx1, t2);
+		idx1++;
+		idx2--;
 	}
 }
 
@@ -247,6 +251,6 @@ static size_t modulo(const ssize_t n, const size_t m) {
 }
 
 static char bitmask(const size_t bit_index) {
-  return 1 << (bit_index % 8);
+  return 1 << (bit_index & 7); // % 8
 }
 
