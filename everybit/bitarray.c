@@ -259,10 +259,11 @@ void bitarray_swap_32(bitarray_t *const bitarray,
         const size_t idx1,
         const size_t idx2) {
     uint64_t* buf64 = (uint64_t*)bitarray->buf;
-    size_t idx_word1 = idx1 / sizeof(uint64_t);
-    size_t idx_word2 = idx2 / sizeof(uint64_t);
-    size_t idx_word_offset1 = idx1 % sizeof(uint64_t);
-    size_t idx_word_offset2 = idx2 % sizeof(uint64_t);
+    size_t idx_word1 = idx1 / sizeof(uint64_t) / 8;
+    size_t idx_word2 = idx2 / sizeof(uint64_t) / 8;
+    size_t idx_word_offset1 = idx1 % (sizeof(uint64_t) * 8);
+    size_t idx_word_offset2 = idx2 % (sizeof(uint64_t) * 8);
+    //printf("%x %x\n", &buf64[idx_word1], &buf64[idx_word2]);
     uint64_t w1 = buf64[idx_word1];
     uint64_t w2 = buf64[idx_word2];
     uint64_t bm1 = bm_32_64(idx_word_offset1);
