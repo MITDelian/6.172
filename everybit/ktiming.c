@@ -69,7 +69,7 @@ clockmark_t ktiming_getmark() {
 #ifdef __APPLE__
   const uint64_t now = mach_absolute_time();
   const Nanoseconds now_nanoseconds = AbsoluteToNanoseconds(*(AbsoluteTime *)&now);
-  return *(uint64_t *)&now_naneseconds;
+  return *(uint64_t *)&now_nanoseconds;
 #else
   struct timespec now;
   uint64_t now_nanoseconds;
