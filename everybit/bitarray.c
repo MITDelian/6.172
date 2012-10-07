@@ -288,7 +288,7 @@ uint64_t reverse_32_word_high64(uint64_t w) {
     return (BitReverseTable256[(w >> 32) & 0xff] << 24) | 
     (BitReverseTable256[(w >> 40) & 0xff] << 16) | 
     (BitReverseTable256[(w >> 48) & 0xff] << 8) |
-    (BitReverseTable256[(w >> 56) & 0xff]);
+    (BitReverseTable256[(w >> 56)]);
 }
 
 void bitarray_swap_32(uint64_t* buf64,
@@ -307,7 +307,7 @@ void bitarray_swap_32(uint64_t* buf64,
     uint64_t reversed_bits2 = reverse_32_word_high64(((w2 & bm2) << idx_word_offset2));
     uint64_t extra_bits1 = w1 & ~bm1;
     uint64_t extra_bits2 = w2 & ~bm2;
-    uint64_t bitsforidx1 = reversed_bits1 >> idx_word_offset1  | extra_bits1;
+    uint64_t bitsforidx1 = reversed_bits2 >> idx_word_offset1  | extra_bits1;
     uint64_t bitsforidx2 = reversed_bits1 >> idx_word_offset2  | extra_bits2;
     buf64[idx_word2] = bitsforidx2;
     buf64[idx_word1] = bitsforidx1;
@@ -438,10 +438,6 @@ static void bitarray_rotate_left(bitarray_t *const bitarray,
         bitarray_rotate_left_reverse(bitarray, bit_offset + j, j+i, i-j);
 
     }
-    //swap i and j
-    //bitarray_swap_block((uint64_t*)bitarray->buf,
-    //        bit_left_amount - i + bit_offset,
-    //        bit_left_amount + bit_offset, i);
 
 }
 
