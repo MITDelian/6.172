@@ -197,19 +197,6 @@ void bitarray_rotate(bitarray_t *const bitarray,
            modulo(-bit_right_amount, bit_length));
 }
 
-// Reverse bits chars at a time, broken on most cases
-void bitarray_reverse_8(bitarray_t *const bitarray,
-                     const size_t bit_offset,
-                     const size_t bit_length) {
-	char tmp = 0;
-	char* buf = bitarray->buf + bit_offset / 8;
-	for (int n = 0; n < bit_length / 2 / 8; n++) {
-		tmp = buf[n];
-		buf[n] = buf[bit_length - n - 1];
-		buf[bit_length - n - 1] = tmp;
-	}
-}
-
 void bitarray_reverse(bitarray_t *const bitarray,
                      const size_t bit_offset,
                      const size_t bit_length) {
