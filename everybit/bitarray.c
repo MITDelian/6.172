@@ -304,7 +304,7 @@ void bitarray_swap_32(uint64_t* buf64,
     uint64_t bm1 = bm_32_64(idx_word_offset1);
     uint64_t bm2 = bm_32_64(idx_word_offset2);
     uint64_t reversed_bits1 = reverse_32_word_high64(((w1 & bm1) << idx_word_offset1));
-    uint64_t reversed_bits2 = ((w2 & bm2) << idx_word_offset2);
+    uint64_t reversed_bits2 = reverse_32_word_high64(((w2 & bm2) << idx_word_offset2));
     uint64_t extra_bits1 = w1 & ~bm1;
     uint64_t extra_bits2 = w2 & ~bm2;
     uint64_t bitsforidx1 = reversed_bits1 >> idx_word_offset1  | extra_bits1;
