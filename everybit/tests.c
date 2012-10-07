@@ -272,8 +272,8 @@ double longrunning_rotation() {
   // There's probably some great reason why this exact size was chosen for
   // the test bit array; however, if there is, it's been lost to
   // history.
-  const size_t bit_sz = 2000 * 1024 * 8 + 471;
-  //const size_t bit_sz = 12 * 1024 * 8 + 471;
+  //const size_t bit_sz = 2000 * 1024 * 8 + 471;
+  const size_t bit_sz = 12 * 1024 * 8 + 471;
   testutil_newrand(bit_sz, 0);
 
   const clockmark_t start_time = ktiming_getmark();

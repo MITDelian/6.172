@@ -282,6 +282,44 @@ inline void bitarray_swap_block(bitarray_t *const bitarray,
         size_t idx2,
         size_t length) {
     uint64_t* buf64 = (uint64_t*)bitarray->buf;
+    size_t idx_word_offset1 = idx1 % (sizeof(uint64_t) * 8);
+    size_t idx_word_offset2 = idx2 % (sizeof(uint64_t) * 8);
+    size_t idx_word_offset1b = (idx_word_offset1 + 32) % 64;
+    size_t idx_word_offset2b = (idx_word_offset2 + 32) % 64;
+    uint64_t bm1 = bm_32_64(idx_word_offset1);
+    uint64_t bm2 = bm_32_64(idx_word_offset2);
+    uint64_t bm1b = bm_32_64(idx_word_offset1b);
+    uint64_t bm2b = bm_32_64(idx_word_offset2b);
+    while (length >= 64) {
+        size_t idx_word1 = idx1 / sizeof(uint64_t) / 8;
+        size_t idx_word2 = idx2 / sizeof(uint64_t) / 8;
+        uint64_t w1 = buf64[idx_word1];
+        uint64_t w2 = buf64[idx_word2];
+        uint64_t extra_bits1 = w1 & ~bm1;
+        uint64_t extra_bits2 = w2 & ~bm2;
+        uint64_t bitsforidx1 = w2 << idx_word_offset2 >> idx_word_offset1 | extra_bits1;
+        uint64_t bitsforidx2 = w1 << idx_word_offset1 >> idx_word_offset2  | extra_bits2;
+        buf64[idx_word2] = bitsforidx2;
+        buf64[idx_word1] = bitsforidx1;
+
+        length -= 32;
+        idx1 += 32;
+        idx2 += 32;
+
+        idx_word1 = idx1 / sizeof(uint64_t) / 8;
+        idx_word2 = idx2 / sizeof(uint64_t) / 8;
+        w1 = buf64[idx_word1];
+        w2 = buf64[idx_word2];
+        extra_bits1 = w1 & ~bm1b;
+        extra_bits2 = w2 & ~bm2b;
+        bitsforidx1 = w2 << idx_word_offset2b >> idx_word_offset1b | extra_bits1;
+        bitsforidx2 = w1 << idx_word_offset1b >> idx_word_offset2b  | extra_bits2;
+        buf64[idx_word2] = bitsforidx2;
+        buf64[idx_word1] = bitsforidx1;
+        length -= 32;
+        idx1 += 32;
+        idx2 += 32;
+    }
     while (length >= 32) {
         size_t idx_word1 = idx1 / sizeof(uint64_t) / 8;
         size_t idx_word2 = idx2 / sizeof(uint64_t) / 8;
