@@ -92,8 +92,8 @@ $(shell echo release >.buildmode)
 endif
 endif
 ifeq ($(PROFILE),1)
-CFLAGS += -DDEBUG -ftest-coverage -fprofile-arcs -pg
-EXTRA_LDFLAGS += -ftest-coverage -fprofile-arcs -pg
+CFLAGS += -DDEBUG -ftest-coverage -fprofile-arcs -pg -gdwarf-3
+EXTRA_LDFLAGS += -ftest-coverage -fprofile-arcs -pg -gdwarf-3
 $(shell echo profile >.buildmode)
 endif
 
