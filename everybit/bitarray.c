@@ -224,10 +224,15 @@ void bitarray_reverse(bitarray_t *const bitarray,
 void bitarray_reverse_fast(bitarray_t *const bitarray,
                      const size_t bit_offset,
                      const size_t bit_length) {
+    printf("reverse_fast o: %d l: %d\n", bit_offset, bit_length);
     size_t idx1 = bit_offset;
     size_t idx2 = bit_offset + bit_length - 1;
     uint64_t* buf64 = (uint64_t*)bitarray->buf;
-    if (bit_length == 0)
+    if (bit_length == 128) {
+       printf("bits: %lx %lx\n", buf64[0], buf64[1]);
+       printf("bits: %x %x\n", bitarray->buf[0], bitarray->buf[15]);
+    }
+    if (bit_length < 2)
         return;
     while (idx2 - idx1 > 64) {
         bitarray_swap_32(buf64, idx1, idx2-31);
@@ -238,8 +243,10 @@ void bitarray_reverse_fast(bitarray_t *const bitarray,
 }
 
 inline uint64_t bm_32_64(size_t b_offset) {
-    uint64_t start = 0xFFFFFFFF00000000;
-    return start >> b_offset;
+   // uint64_t start = 0xFFFFFFFF00000000;
+   // return start >> b_offset;
+    uint64_t start = 0xFFFFFFFF;
+    return start << b_offset;
 }
 
 static const unsigned char BitReverseTable256[] = 
@@ -263,16 +270,17 @@ static const unsigned char BitReverseTable256[] =
 };
 
 uint64_t reverse_64_word(uint64_t w) {
-    //// swap odd and even bits
-    //w = ((w >> 1) & 0x5555555555555555) | ((w & 0x5555555555555555) << 1);
-    //// swap consecutiwe pairs
-    //w = ((w >> 2) & 0x3333333333333333) | ((w & 0x3333333333333333) << 2);
-    //// swap nibbles ... 
-    //w = ((w >> 4) & 0x0F0F0F0F0F0F0F0F) | ((w & 0x0F0F0F0F0F0F0F0F) << 4);
-    //// swap bytes
-    //w = ((w >> 8) & 0x00FF00FF00FF00FF) | ((w & 0x00FF00FF00FF00FF) << 8);
-    //// swap 2-byte pairs
-    //w = ((w >> 16) & 0x0000FFFF0000FFFF) | ((w & 0x0000FFFF0000FFFF) << 16);
+    // swap odd and even bits
+    w = ((w >> 1) & 0x5555555555555555) | ((w & 0x5555555555555555) << 1);
+    // swap consecutiwe pairs
+    w = ((w >> 2) & 0x3333333333333333) | ((w & 0x3333333333333333) << 2);
+    // swap nibbles ... 
+    w = ((w >> 4) & 0x0F0F0F0F0F0F0F0F) | ((w & 0x0F0F0F0F0F0F0F0F) << 4);
+    // swap bytes
+    w = ((w >> 8) & 0x00FF00FF00FF00FF) | ((w & 0x00FF00FF00FF00FF) << 8);
+    // swap 2-byte pairs
+    w = ((w >> 16) & 0x0000FFFF0000FFFF) | ((w & 0x0000FFFF0000FFFF) << 16);
+return w;
     int c = (BitReverseTable256[w & 0xff] << 24) | 
     (BitReverseTable256[(w >> 8) & 0xff] << 16) | 
     (BitReverseTable256[(w >> 16) & 0xff] << 8) |
@@ -284,16 +292,25 @@ uint64_t reverse_64_word(uint64_t w) {
     return d << 32 | c;
 }
 
+//uint64_t reverse_32_word_high64(uint64_t w) {
+//    return (BitReverseTable256[(w >> 32) & 0xff] << 24) | 
+//    (BitReverseTable256[(w >> 40) & 0xff] << 16) | 
+//    (BitReverseTable256[(w >> 48) & 0xff] << 8) |
+//    (BitReverseTable256[(w >> 56)]);
+//}
 uint64_t reverse_32_word_high64(uint64_t w) {
-    return (BitReverseTable256[(w >> 32) & 0xff] << 24) | 
-    (BitReverseTable256[(w >> 40) & 0xff] << 16) | 
-    (BitReverseTable256[(w >> 48) & 0xff] << 8) |
-    (BitReverseTable256[(w >> 56)]);
+    uint64_t c = (BitReverseTable256[(w >> 0) & 0xff] << 24) | 
+    (BitReverseTable256[(w >> 8) & 0xff] << 16) | 
+    (BitReverseTable256[(w >> 16) & 0xff] << 8) |
+    (BitReverseTable256[(w >> 24) & 0xff]); //TODO: should not be needed
+    printf("reversing: %lx %lx\n", w, c & 0xFFFFFFFF);
+    return c & 0xFFFFFFFF; //TODO: why do we need to AND
 }
 
 void bitarray_swap_32(uint64_t* buf64,
         const size_t idx1,
         const size_t idx2) {
+    printf("swap %d and %d\n", idx1,idx2);
     size_t idx_word1 = idx1 / sizeof(uint64_t) / 8;
     size_t idx_word2 = idx2 / sizeof(uint64_t) / 8;
     size_t idx_word_offset1 = idx1 % (sizeof(uint64_t) * 8);
@@ -303,12 +320,17 @@ void bitarray_swap_32(uint64_t* buf64,
     uint64_t w2 = buf64[idx_word2];
     uint64_t bm1 = bm_32_64(idx_word_offset1);
     uint64_t bm2 = bm_32_64(idx_word_offset2);
-    uint64_t reversed_bits1 = reverse_32_word_high64(((w1 & bm1) << idx_word_offset1));
-    uint64_t reversed_bits2 = reverse_32_word_high64(((w2 & bm2) << idx_word_offset2));
+    uint64_t reversed_bits1 = reverse_32_word_high64(((w1 & bm1) >> idx_word_offset1));
+    uint64_t reversed_bits2 = reverse_32_word_high64(((w2 & bm2) >> idx_word_offset2));
+printf("w1: %lx w2:%lx b1:%lx b2:%lx\n", w1,w2,bm1,bm2);
+printf("%lx %lx\n", (w1 & bm1) >> idx_word_offset1, reversed_bits1);
+printf("%lx %lx\n", (w2 & bm2) >> idx_word_offset2, reversed_bits2);
     uint64_t extra_bits1 = w1 & ~bm1;
     uint64_t extra_bits2 = w2 & ~bm2;
-    uint64_t bitsforidx1 = reversed_bits2 >> idx_word_offset1  | extra_bits1;
-    uint64_t bitsforidx2 = reversed_bits1 >> idx_word_offset2  | extra_bits2;
+printf("extra:%lx %lx\n", extra_bits1, extra_bits2);
+    uint64_t bitsforidx1 = reversed_bits2 << idx_word_offset1  | extra_bits1;
+    uint64_t bitsforidx2 = reversed_bits1 << idx_word_offset2  | extra_bits2;
+printf("bits:%lx %lx\n", bitsforidx1, bitsforidx2);
     buf64[idx_word2] = bitsforidx2;
     buf64[idx_word1] = bitsforidx1;
 }
