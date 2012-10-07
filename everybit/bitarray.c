@@ -113,7 +113,7 @@ static char bitmask(const size_t bit_index);
 // ******************************* Functions ********************************
 
 //headers
-void bitarray_swap_32(bitarray_t *const bitarray,
+void bitarray_swap_32(uint64_t* buf64,
         const size_t idx1,
         const size_t idx2);
 
@@ -226,10 +226,11 @@ void bitarray_reverse_fast(bitarray_t *const bitarray,
                      const size_t bit_length) {
     size_t idx1 = bit_offset;
     size_t idx2 = bit_offset + bit_length - 1;
+    uint64_t* buf64 = (uint64_t*)bitarray->buf;
     if (bit_length == 0)
         return;
     while (idx2 - idx1 > 64) {
-        bitarray_swap_32(bitarray, idx1, idx2-31);
+        bitarray_swap_32(buf64, idx1, idx2-31);
         idx1 += 32;
         idx2 -= 32;
     }
@@ -255,10 +256,9 @@ uint64_t reverse_64_word(uint64_t w) {
     return w;
 }
 
-void bitarray_swap_32(bitarray_t *const bitarray,
+void bitarray_swap_32(uint64_t* buf64,
         const size_t idx1,
         const size_t idx2) {
-    uint64_t* buf64 = (uint64_t*)bitarray->buf;
     size_t idx_word1 = idx1 / sizeof(uint64_t) / 8;
     size_t idx_word2 = idx2 / sizeof(uint64_t) / 8;
     size_t idx_word_offset1 = idx1 % (sizeof(uint64_t) * 8);
