@@ -291,7 +291,7 @@ uint64_t reverse_64_word(uint64_t w) {
     // swap 2-byte pairs
     w = ((w >> 16) & 0x0000FFFF0000FFFF) | ((w & 0x0000FFFF0000FFFF) << 16);
     // swap 4-byte long pairs
-    w = ( w >> 32                      ) | ( w                       << 32);
+    //w = ( w >> 32                      ) | ( w                       << 32);
     return w;
 }
 
@@ -309,8 +309,8 @@ void bitarray_swap_32(bitarray_t *const bitarray,
     uint64_t bm2 = bm_32_64(idx_word_offset2);
     uint64_t extra_bits1 = w1 & ~bm1;
     uint64_t extra_bits2 = w2 & ~bm2;
-    uint64_t reversed_bits1 = reverse_64_word((w1 & bm1) << idx_word_offset1) << 32;
-    uint64_t reversed_bits2 = reverse_64_word((w2 & bm2) << idx_word_offset2) << 32;
+    uint64_t reversed_bits1 = reverse_64_word((w1 & bm1) << idx_word_offset1);
+    uint64_t reversed_bits2 = reverse_64_word((w2 & bm2) << idx_word_offset2);
     uint64_t bitsforidx1 = reversed_bits2 >> idx_word_offset1  | extra_bits1;
     uint64_t bitsforidx2 = reversed_bits1 >> idx_word_offset2  | extra_bits2;
     buf64[idx_word1] = bitsforidx1;
