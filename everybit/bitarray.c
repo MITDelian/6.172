@@ -307,14 +307,14 @@ void bitarray_swap_32(bitarray_t *const bitarray,
     uint64_t w2 = buf64[idx_word2];
     uint64_t bm1 = bm_32_64(idx_word_offset1);
     uint64_t bm2 = bm_32_64(idx_word_offset2);
-    uint64_t extra_bits1 = w1 & ~bm1;
-    uint64_t extra_bits2 = w2 & ~bm2;
     uint64_t reversed_bits1 = reverse_64_word((w1 & bm1) << idx_word_offset1);
     uint64_t reversed_bits2 = reverse_64_word((w2 & bm2) << idx_word_offset2);
+    uint64_t extra_bits1 = w1 & ~bm1;
+    uint64_t extra_bits2 = w2 & ~bm2;
     uint64_t bitsforidx1 = reversed_bits2 >> idx_word_offset1  | extra_bits1;
     uint64_t bitsforidx2 = reversed_bits1 >> idx_word_offset2  | extra_bits2;
-    buf64[idx_word1] = bitsforidx1;
     buf64[idx_word2] = bitsforidx2;
+    buf64[idx_word1] = bitsforidx1;
 }
 
 static void bitarray_rotate_left(bitarray_t *const bitarray,
