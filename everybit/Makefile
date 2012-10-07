@@ -80,7 +80,7 @@ endif
 OLD_MODE = $(shell cat .buildmode 2> /dev/null)
 ifeq ($(DEBUG),1)
 # We want debug mode.
-CFLAGS += -g -O0
+CFLAGS += -g -O0 -gdwarf-3
 ifneq ($(OLD_MODE),debug)
 $(shell echo debug >.buildmode)
 endif
