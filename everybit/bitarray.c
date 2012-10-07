@@ -249,7 +249,7 @@ void bitarray_reverse_fast(bitarray_t *const bitarray,
     bitarray_reverse(bitarray, idx1, idx2 - idx1 + 1);
 }
 
-uint64_t bm_32_64(size_t b_offset) {
+inline uint64_t bm_32_64(size_t b_offset) {
     uint64_t start = 0xFFFFFFFF00000000;
     return start >> b_offset;
 }
