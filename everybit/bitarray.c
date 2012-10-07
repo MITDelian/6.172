@@ -302,7 +302,6 @@ inline void bitarray_swap_block(bitarray_t *const bitarray,
         buf64[idx_word2] = bitsforidx2;
         buf64[idx_word1] = bitsforidx1;
 
-        length -= 32;
         idx1 += 32;
         idx2 += 32;
 
@@ -316,7 +315,7 @@ inline void bitarray_swap_block(bitarray_t *const bitarray,
         bitsforidx2 = w1 << idx_word_offset1b >> idx_word_offset2b  | extra_bits2;
         buf64[idx_word2] = bitsforidx2;
         buf64[idx_word1] = bitsforidx1;
-        length -= 32;
+        length -= 64;
         idx1 += 32;
         idx2 += 32;
     }
@@ -364,7 +363,7 @@ static void bitarray_rotate_left(bitarray_t *const bitarray,
                                  const size_t bit_length,
                                  const size_t bit_left_amount) {
     //printf("rotate\n");
-    if (-bit_length + 2* bit_left_amount < 32) {
+    if (-bit_length + 2* bit_left_amount < 128) {
         bitarray_rotate_left_reverse(bitarray, bit_offset, bit_length, bit_left_amount);
         return;
   }
@@ -372,36 +371,34 @@ static void bitarray_rotate_left(bitarray_t *const bitarray,
         return;
     size_t i = bit_left_amount;
     size_t j = bit_length - bit_left_amount;
-    int c = 0;
-    while (i != j && i > 64 && j > 64) {
+    size_t bit_left_amount_and_offset = bit_left_amount + bit_offset;
+    while (i != j && i > 128 && j > 128) {
         //printf("i:%d\tj:%d\n",i,j);
         if (i < j) {
             //i is shorter
             bitarray_swap_block(bitarray,
-                    bit_left_amount - i + bit_offset,
-                    bit_left_amount + j - i + bit_offset, i);
+                    bit_left_amount_and_offset - i,
+                    bit_left_amount_and_offset + j - i, i);
             j -= i;
         } else {
             //j is shorter
             bitarray_swap_block(bitarray,
-                    bit_left_amount - i + bit_offset,
-                    bit_left_amount + bit_offset, j);
+                    bit_left_amount_and_offset - i,
+                    bit_left_amount_and_offset, j);
             i -= j;
-
         }
-        c++;
     }
     if (i < j) {
         //i is shorter
         bitarray_swap_block(bitarray,
-                bit_left_amount - i + bit_offset,
-                bit_left_amount + j - i + bit_offset, i);
+                bit_left_amount_and_offset - i,
+                bit_left_amount_and_offset + j - i, i);
         bitarray_rotate_left_reverse(bitarray, bit_offset, j, i);
     } else {
         //j is shorter
         bitarray_swap_block(bitarray,
-                bit_left_amount - i + bit_offset,
-                bit_left_amount + bit_offset, j);
+                bit_left_amount_and_offset - i,
+                bit_left_amount_and_offset, j);
         bitarray_rotate_left_reverse(bitarray, bit_offset + j, j+i, i-j);
 
     }
