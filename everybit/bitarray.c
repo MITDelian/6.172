@@ -252,8 +252,6 @@ uint64_t reverse_64_word(uint64_t w) {
     w = ((w >> 8) & 0x00FF00FF00FF00FF) | ((w & 0x00FF00FF00FF00FF) << 8);
     // swap 2-byte pairs
     w = ((w >> 16) & 0x0000FFFF0000FFFF) | ((w & 0x0000FFFF0000FFFF) << 16);
-    // swap 4-byte long pairs
-    //w = ( w >> 32                      ) | ( w                       << 32);
     return w;
 }
 
