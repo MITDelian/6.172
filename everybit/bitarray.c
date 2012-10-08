@@ -374,8 +374,8 @@ void bitarray_swap_block(bitarray_t *const bitarray,
         uint64_t extra_bits2 = w2 & ~bm2;
         uint64_t bitsforidx1 = (w2 & bm2) >> idx_word_offset2 << idx_word_offset1 | extra_bits1;
         uint64_t bitsforidx2 = (w1 & bm1) >> idx_word_offset1 << idx_word_offset2  | extra_bits2;
-        array1[idx_word2] = bitsforidx2;
-        array2[idx_word1] = bitsforidx1;
+        array2[idx_word2] = bitsforidx2;
+        array1[idx_word1] = bitsforidx1;
         length -= 32;
         idx1 += 32;
         idx2 += 32;
