@@ -337,8 +337,6 @@ void bitarray_swap_block(bitarray_t *const bitarray,
         BUF64ARRAY_WITH_OFFSET(idx_word2_o)[idx_word2] = bitsforidx2;
         BUF64ARRAY_WITH_OFFSET(idx_word1_o)[idx_word1] = bitsforidx1;
 
-        idx_word1 = idx1 / sizeof(uint64_t) / 8;
-        idx_word2 = idx2 / sizeof(uint64_t) / 8;
         w1 = BUF64ARRAY_WITH_OFFSET(1-idx_word1_o)[idx_word1b];
         w2 = BUF64ARRAY_WITH_OFFSET(1-idx_word2_o)[idx_word2b];
         extra_bits1 = w1 & ~bm1b;
