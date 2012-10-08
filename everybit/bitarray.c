@@ -357,7 +357,6 @@ void bitarray_swap_block(bitarray_t *const bitarray,
     idx2 += olength - length;
     // If the length is less than 64, swap 32 bits at a time
     while (length >= 32) {
-        printf("\n");
         size_t idx_word1 = idx1 / sizeof(uint64_t) / 8;
         size_t idx_word2 = idx2 / sizeof(uint64_t) / 8;
         size_t idx_word1_o = idx1 & 32 ? 1 : 0;
