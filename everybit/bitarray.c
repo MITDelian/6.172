@@ -358,12 +358,12 @@ void bitarray_swap_block(bitarray_t *const bitarray,
     //idx2 += olength - length;
     // If the length is less than 64, swap 32 bits at a time
     while (length >= 32) {
-        size_t idx_word1 = idx1 / sizeof(uint64_t) / 8;
-        size_t idx_word2 = idx2 / sizeof(uint64_t) / 8;
-        size_t idx_word1_o = idx1 & 32 ? 1 : 0;
-        size_t idx_word2_o = idx2 & 32 ? 1 : 0;
-        size_t idx_word_offset1 = idx1 % (sizeof(uint64_t) * 8) - 32 * idx_word1_o;
-        size_t idx_word_offset2 = idx2 % (sizeof(uint64_t) * 8) - 32 * idx_word2_o;
+        const size_t idx_word1 = idx1 / sizeof(uint64_t) / 8;
+        const size_t idx_word2 = idx2 / sizeof(uint64_t) / 8;
+        const size_t idx_word1_o = idx1 & 32 ? 1 : 0;
+        const size_t idx_word2_o = idx2 & 32 ? 1 : 0;
+        const size_t idx_word_offset1 = idx1 % (sizeof(uint64_t) * 8) - 32 * idx_word1_o;
+        const size_t idx_word_offset2 = idx2 % (sizeof(uint64_t) * 8) - 32 * idx_word2_o;
         uint64_t* restrict array1 = BUF64ARRAY_WITH_OFFSET(idx_word1_o);
         uint64_t* restrict array2 = BUF64ARRAY_WITH_OFFSET(idx_word2_o);
         uint64_t w1 = array1[idx_word1];
