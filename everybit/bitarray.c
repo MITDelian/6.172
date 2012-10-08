@@ -225,6 +225,12 @@ void bitarray_reverse_fast(bitarray_t *const bitarray,
                      const size_t bit_offset,
                      const size_t bit_length) {
     printf("reverse_fast o: %d l: %d\n", bit_offset, bit_length);
+        if (bit_length == 256) {
+printf("\n");
+        for (int n = 0; n < 256; n++)
+            printf(" %d ", bitarray_get(bitarray, n));
+}
+        printf("\n");
     size_t idx1 = bit_offset;
     size_t idx2 = bit_offset + bit_length - 1;
     uint64_t* buf64 = (uint64_t*)bitarray->buf;
@@ -310,14 +316,19 @@ uint64_t reverse_32_word_high64(uint64_t w) {
 void bitarray_swap_32(uint64_t* buf64,
         const size_t idx1,
         const size_t idx2) {
-    printf("swap %d and %d\n", idx1,idx2);
+    printf("%lx\n",buf64[3]);
+    char* buff = (char*)buf64;
     size_t idx_word1 = idx1 / sizeof(uint64_t) / 8;
     size_t idx_word2 = idx2 / sizeof(uint64_t) / 8;
-    size_t idx_word_offset1 = idx1 % (sizeof(uint64_t) * 8);
-    size_t idx_word_offset2 = idx2 % (sizeof(uint64_t) * 8);
+    size_t idx_word1_o = idx1 & 32 ? 1 : 0;
+    size_t idx_word2_o = idx2 & 32 ? 1 : 0;
+    printf("swap %d and %d w:%d,%d\n", idx1,idx2, idx_word1, idx_word2);
+    size_t idx_word_offset1 = idx1 % (sizeof(uint64_t) * 8) - 32 * idx_word1_o;
+    size_t idx_word_offset2 = idx2 % (sizeof(uint64_t) * 8) - 32 * idx_word2_o;
+    printf("offsets: %d, %d\n", idx_word1_o, idx_word2_o);
     //printf("%x %x\n", &buf64[idx_word1], &buf64[idx_word2]);
-    uint64_t w1 = buf64[idx_word1];
-    uint64_t w2 = buf64[idx_word2];
+    uint64_t w1 = ((uint64_t*)(buff+4*idx_word1_o))[idx_word1];
+    uint64_t w2 = ((uint64_t*)(buff+4*idx_word2_o))[idx_word2];
     uint64_t bm1 = bm_32_64(idx_word_offset1);
     uint64_t bm2 = bm_32_64(idx_word_offset2);
     uint64_t reversed_bits1 = reverse_32_word_high64(((w1 & bm1) >> idx_word_offset1));
@@ -330,9 +341,10 @@ printf("%lx %lx\n", (w2 & bm2) >> idx_word_offset2, reversed_bits2);
 printf("extra:%lx %lx\n", extra_bits1, extra_bits2);
     uint64_t bitsforidx1 = reversed_bits2 << idx_word_offset1  | extra_bits1;
     uint64_t bitsforidx2 = reversed_bits1 << idx_word_offset2  | extra_bits2;
-printf("bits:%lx %lx\n", bitsforidx1, bitsforidx2);
-    buf64[idx_word2] = bitsforidx2;
-    buf64[idx_word1] = bitsforidx1;
+printf("write_bits:%lx %lx\n", bitsforidx1, bitsforidx2);
+    ((uint64_t*)(buff+4*idx_word1_o))[idx_word1] = bitsforidx1;
+    ((uint64_t*)(buff+4*idx_word2_o))[idx_word2] = bitsforidx2;
+    printf("%lx\n",buf64[3]);
 }
 
 inline void bitarray_swap_block(bitarray_t *const bitarray,
@@ -425,10 +437,11 @@ static void bitarray_rotate_left(bitarray_t *const bitarray,
                                  const size_t bit_length,
                                  const size_t bit_left_amount) {
     //printf("rotate\n");
-    if (-bit_length + 2* bit_left_amount < 128) {
+   // if (-bit_length + 2* bit_left_amount < 128) {
+        printf("short circuiting to reverse\n");
         bitarray_rotate_left_reverse(bitarray, bit_offset, bit_length, bit_left_amount);
         return;
-  }
+//  }
     if (bit_left_amount == 0 || bit_left_amount == bit_length)
         return;
     size_t i = bit_left_amount;
