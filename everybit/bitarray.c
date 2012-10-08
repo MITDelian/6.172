@@ -392,25 +392,27 @@ inline void bitarray_swap_block(bitarray_t *const bitarray,
     }
     idx1 += olength - length;
     idx2 += olength - length;
-    //while (length >= 32) {
-    //    size_t idx_word1 = idx1 / sizeof(uint64_t) / 8;
-    //    size_t idx_word2 = idx2 / sizeof(uint64_t) / 8;
-    //    size_t idx_word_offset1 = idx1 % (sizeof(uint64_t) * 8);
-    //    size_t idx_word_offset2 = idx2 % (sizeof(uint64_t) * 8);
-    //    uint64_t w1 = buf64[idx_word1];
-    //    uint64_t w2 = buf64[idx_word2];
-    //    uint64_t bm1 = bm_32_64(idx_word_offset1);
-    //    uint64_t bm2 = bm_32_64(idx_word_offset2);
-    //    uint64_t extra_bits1 = w1 & ~bm1;
-    //    uint64_t extra_bits2 = w2 & ~bm2;
-    //    uint64_t bitsforidx1 = w2 << idx_word_offset2 >> idx_word_offset1 | extra_bits1;
-    //    uint64_t bitsforidx2 = w1 << idx_word_offset1 >> idx_word_offset2  | extra_bits2;
-    //    buf64[idx_word2] = bitsforidx2;
-    //    buf64[idx_word1] = bitsforidx1;
-    //    length -= 32;
-    //    idx1 += 32;
-    //    idx2 += 32;
-    //}
+    while (length >= 32) {
+        size_t idx_word1 = idx1 / sizeof(uint64_t) / 8;
+        size_t idx_word2 = idx2 / sizeof(uint64_t) / 8;
+        size_t idx_word_offset1 = idx1 % (sizeof(uint64_t) * 8) - 32 * idx_word1_o;
+        size_t idx_word_offset2 = idx2 % (sizeof(uint64_t) * 8) - 32 * idx_word2_o;
+        size_t idx_word1_o = idx1 & 32 ? 1 : 0;
+        size_t idx_word2_o = idx2 & 32 ? 1 : 0;
+        uint64_t w1 = BUF64ARRAY_WITH_OFFSET(idx_word1_o)[idx_word1];
+        uint64_t w2 = BUF64ARRAY_WITH_OFFSET(idx_word2_o)[idx_word2];
+        uint64_t bm1 = bm_32_64(idx_word_offset1);
+        uint64_t bm2 = bm_32_64(idx_word_offset2);
+        uint64_t extra_bits1 = w1 & ~bm1;
+        uint64_t extra_bits2 = w2 & ~bm2;
+        uint64_t bitsforidx1 = w2 << idx_word_offset2 >> idx_word_offset1 | extra_bits1;
+        uint64_t bitsforidx2 = w1 << idx_word_offset1 >> idx_word_offset2  | extra_bits2;
+        BUF64ARRAY_WITH_OFFSET(idx_word2_o)[idx_word2] = bitsforidx2;
+        BUF64ARRAY_WITH_OFFSET(idx_word1_o)[idx_word1] = bitsforidx1;
+        length -= 32;
+        idx1 += 32;
+        idx2 += 32;
+    }
     while (length > 0) {
         bool tmp = bitarray_get(bitarray, idx1);
         //printf("idx1: %d, idx2: %d tmp: %d\n", idx1, idx2, tmp);
