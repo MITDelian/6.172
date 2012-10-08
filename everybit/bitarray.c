@@ -327,7 +327,7 @@ void bitarray_swap_block(bitarray_t *const bitarray,
     uint64_t bm1b = bm_32_64(idx_word_offset1b);
     uint64_t bm2b = bm_32_64(idx_word_offset2b);
     // Swap 64 bits at a time
-    while (length >= 256) {
+    while (length >= 64) {
         uint64_t w1 = BUF64ARRAY_WITH_OFFSET(idx_word1_o)[idx_word1];
         uint64_t w2 = BUF64ARRAY_WITH_OFFSET(idx_word2_o)[idx_word2];
         uint64_t extra_bits1 = w1 & ~bm1;
