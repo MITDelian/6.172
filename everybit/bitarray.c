@@ -427,12 +427,12 @@ static void bitarray_rotate_left_reverse(bitarray_t *const bitarray,
                                  const size_t bit_length,
                                  const size_t bit_left_amount) {
     //printf("\none:");
-        for (int n = 0; n < bit_length+bit_offset; n++)
+        //for (int n = 0; n < bit_length+bit_offset; n++)
             //printf(" %d ", bitarray_get(bitarray, n));
         //printf("\n");
 	bitarray_reverse_fast(bitarray, bit_offset, bit_left_amount);
     //printf("\ntwo:");
-        for (int n = 0; n < bit_length+bit_offset; n++)
+        //for (int n = 0; n < bit_length+bit_offset; n++)
             //printf(" %d ", bitarray_get(bitarray, n));
         //printf("\n");
 	bitarray_reverse_fast(bitarray, bit_offset + bit_left_amount, bit_length - bit_left_amount);
@@ -445,7 +445,7 @@ static void bitarray_rotate_left(bitarray_t *const bitarray,
                                  const size_t bit_left_amount) {
     ////printf("rotate\n");
     if (-bit_length + 2* bit_left_amount < 128) {
-        printf("short circuiting to reverse\n");
+        //printf("short circuiting to reverse\n");
         bitarray_rotate_left_reverse(bitarray, bit_offset, bit_length, bit_left_amount);
         return;
   }
@@ -456,7 +456,7 @@ static void bitarray_rotate_left(bitarray_t *const bitarray,
     size_t bit_left_amount_and_offset = bit_left_amount + bit_offset;
     //printf("i:%d\tj:%d\n",i,j);
     while (i > 128 && j > 128 && i != j) {
-        printf("i:%d\tj:%d\n",i,j);
+        //printf("i:%d\tj:%d\n",i,j);
         if (i < j) {
             //i is shorter
             bitarray_swap_block(bitarray,
