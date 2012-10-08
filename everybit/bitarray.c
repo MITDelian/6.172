@@ -197,6 +197,10 @@ void bitarray_rotate(bitarray_t *const bitarray,
            modulo(-bit_right_amount, bit_length));
 }
 
+/**
+ * Accomplishes slow reversal by swapping bit by bit towards
+ * the middle
+ */
 void bitarray_reverse(bitarray_t *const bitarray,
                      const size_t bit_offset,
                      const size_t bit_length) {
@@ -230,10 +234,13 @@ void bitarray_reverse_fast(bitarray_t *const bitarray,
     if (bit_length < 2)
         return;
     while (idx2 - idx1 > 64) {
+        // Swap and reverse two 32-bit chunks at a time
         bitarray_swap_32(buf64, idx1, idx2-31);
+        // Move the two indices towards one another
         idx1 += 32;
         idx2 -= 32;
     }
+    // Use the slow reversal when the length is less than 64
     bitarray_reverse(bitarray, idx1, idx2 - idx1 + 1);
 }
 
@@ -296,6 +303,9 @@ void bitarray_swap_32(uint64_t* buf64,
 
 #define BUF64ARRAY_WITH_OFFSET(B) ((uint64_t*)(((char*)buf64) + 4*(B)))
 
+/**
+ * Swaps two blocks at idx1 and idx2 with a given length
+ */
 inline void bitarray_swap_block(bitarray_t *const bitarray,
         size_t idx1,
         size_t idx2,
@@ -316,6 +326,7 @@ inline void bitarray_swap_block(bitarray_t *const bitarray,
     uint64_t bm2 = bm_32_64(idx_word_offset2);
     uint64_t bm1b = bm_32_64(idx_word_offset1b);
     uint64_t bm2b = bm_32_64(idx_word_offset2b);
+    // Swap 64 bits at a time
     while (length >= 64) {
         uint64_t w1 = BUF64ARRAY_WITH_OFFSET(idx_word1_o)[idx_word1];
         uint64_t w2 = BUF64ARRAY_WITH_OFFSET(idx_word2_o)[idx_word2];
@@ -344,6 +355,7 @@ inline void bitarray_swap_block(bitarray_t *const bitarray,
     }
     idx1 += olength - length;
     idx2 += olength - length;
+    // If the length is less than 64, swap 32 bits at a time
     while (length >= 32) {
         size_t idx_word1 = idx1 / sizeof(uint64_t) / 8;
         size_t idx_word2 = idx2 / sizeof(uint64_t) / 8;
@@ -365,6 +377,7 @@ inline void bitarray_swap_block(bitarray_t *const bitarray,
         idx1 += 32;
         idx2 += 32;
     }
+    // In the trickled down case, swap the bits one by one
     while (length > 0) {
         bool tmp = bitarray_get(bitarray, idx1);
         bitarray_set(bitarray, idx1, bitarray_get(bitarray, idx2));
@@ -379,7 +392,12 @@ static void bitarray_rotate_left_reverse(bitarray_t *const bitarray,
                                  const size_t bit_offset,
                                  const size_t bit_length,
                                  const size_t bit_left_amount) {
-	bitarray_reverse_fast(bitarray, bit_offset, bit_left_amount);
+        /*
+         * Accomplishes left rotation through a triple reversal,
+         * a reversal of the left, a reversal of the right, and
+         * a reversal of the whole array
+         */
+        bitarray_reverse_fast(bitarray, bit_offset, bit_left_amount);
 	bitarray_reverse_fast(bitarray, bit_offset + bit_left_amount, bit_length - bit_left_amount);
 	bitarray_reverse_fast(bitarray, bit_offset, bit_length);
 }
@@ -388,16 +406,33 @@ static void bitarray_rotate_left(bitarray_t *const bitarray,
                                  const size_t bit_offset,
                                  const size_t bit_length,
                                  const size_t bit_left_amount) {
-    if (-bit_length + 2* bit_left_amount < 128) {
-        bitarray_rotate_left_reverse(bitarray, bit_offset, bit_length, bit_left_amount);
-        return;
-  }
+    /*
+     * If the rotation amount is 0 or the length of the array
+     * the final result is the current bit array so we can
+     * terminate early
+     */
     if (bit_left_amount == 0 || bit_left_amount == bit_length)
         return;
+    /*
+     * If the rotation amount is low, short-circuit into
+     * the triple rotation which is faster when the shift 
+     * amount is low
+     */
+    if (bit_left_amount < 16) {
+        bitarray_rotate_left_reverse(bitarray, bit_offset, bit_length, bit_left_amount);
+        return;
+    }
+    /*
+     * If the shift amount is large, triple rotation is
+     * inefficient because it moves each bit 3 times.
+     * Below is the "Euler" method which uses swapping
+     * to put pieces of the bit array in the right place
+     * by swapping in blocks of size of the shift amount
+     */
     size_t i = bit_left_amount;
     size_t j = bit_length - bit_left_amount;
     size_t bit_left_amount_and_offset = bit_left_amount + bit_offset;
-    while (i > 128 && j > 128 && i != j) {
+    while (i > 256 && j > 256 && i != j) {
         if (i < j) {
             //i is shorter
             bitarray_swap_block(bitarray,
@@ -412,6 +447,10 @@ static void bitarray_rotate_left(bitarray_t *const bitarray,
             i -= j;
         }
     }
+    /*
+     * We use the triple rotation to do the final swap since
+     * it runs faster at lower shift amounts
+     */
     if (i < j) {
         //i is shorter
         bitarray_swap_block(bitarray,
@@ -429,19 +468,6 @@ static void bitarray_rotate_left(bitarray_t *const bitarray,
 
 }
 
-static void bitarray_rotate_left_one(bitarray_t *const bitarray,
-                                     const size_t bit_offset,
-                                     const size_t bit_length) {
-  // Grab the first bit in the range, shift everything left by one, and
-  // then stick the first bit at the end.
-  const bool first_bit = bitarray_get(bitarray, bit_offset);
-  size_t i;
-  for (i = bit_offset; i + 1 < bit_offset + bit_length; i++) {
-    bitarray_set(bitarray, i, bitarray_get(bitarray, i + 1));
-  }
-  bitarray_set(bitarray, i, first_bit);
-}
-
 static size_t modulo(const ssize_t n, const size_t m) {
   const ssize_t signed_m = (ssize_t)m;
   assert(signed_m > 0);
@@ -451,6 +477,6 @@ static size_t modulo(const ssize_t n, const size_t m) {
 }
 
 static char bitmask(const size_t bit_index) {
-  return 1 << (bit_index & 7); // % 8
+  return 1 << (bit_index & 7); // % 8 is the same as &7 and runs slightly faster
 }
 
