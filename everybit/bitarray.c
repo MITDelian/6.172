@@ -277,6 +277,8 @@ uint64_t reverse_32_word_high64(uint64_t w) {
     return c & 0xFFFFFFFF; //TODO: why do we need to AND
 }
 
+#define BUF64ARRAY_WITH_OFFSET(B) ((uint64_t*)(((char*)buf64) + 4*(B)))
+
 void bitarray_swap_32(uint64_t* buf64,
         const size_t idx1,
         const size_t idx2) {
@@ -287,8 +289,10 @@ void bitarray_swap_32(uint64_t* buf64,
     size_t idx_word2_o = idx2 & 32 ? 1 : 0;
     size_t idx_word_offset1 = idx1 % (sizeof(uint64_t) * 8) - 32 * idx_word1_o;
     size_t idx_word_offset2 = idx2 % (sizeof(uint64_t) * 8) - 32 * idx_word2_o;
-    uint64_t w1 = ((uint64_t*)(buff+4*idx_word1_o))[idx_word1];
-    uint64_t w2 = ((uint64_t*)(buff+4*idx_word2_o))[idx_word2];
+    uint64_t* restrict array1 = BUF64ARRAY_WITH_OFFSET(idx_word1_o);
+    uint64_t* restrict array2 = BUF64ARRAY_WITH_OFFSET(idx_word2_o);
+    uint64_t w1 = array1[idx_word1];
+    uint64_t w2 = array2[idx_word2];
     uint64_t bm1 = bm_32_64(idx_word_offset1);
     uint64_t bm2 = bm_32_64(idx_word_offset2);
     uint64_t reversed_bits1 = reverse_32_word_high64(((w1 & bm1) >> idx_word_offset1));
@@ -297,11 +301,10 @@ void bitarray_swap_32(uint64_t* buf64,
     uint64_t extra_bits2 = w2 & ~bm2;
     uint64_t bitsforidx1 = reversed_bits2 << idx_word_offset1  | extra_bits1;
     uint64_t bitsforidx2 = reversed_bits1 << idx_word_offset2  | extra_bits2;
-    ((uint64_t*)(buff+4*idx_word1_o))[idx_word1] = bitsforidx1;
-    ((uint64_t*)(buff+4*idx_word2_o))[idx_word2] = bitsforidx2;
+    array1[idx_word1] = bitsforidx1;
+    array2[idx_word2] = bitsforidx2;
 }
 
-#define BUF64ARRAY_WITH_OFFSET(B) ((uint64_t*)(((char*)buf64) + 4*(B)))
 
 /**
  * Swaps two blocks at idx1 and idx2 with a given length
