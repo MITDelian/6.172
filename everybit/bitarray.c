@@ -418,10 +418,10 @@ static void bitarray_rotate_left(bitarray_t *const bitarray,
      * the triple rotation which is faster when the shift 
      * amount is low
      */
-    //if (bit_left_amount < 16) {
-    //    bitarray_rotate_left_reverse(bitarray, bit_offset, bit_length, bit_left_amount);
-    //    return;
-    //}
+    if (bit_left_amount < 16) {
+        bitarray_rotate_left_reverse(bitarray, bit_offset, bit_length, bit_left_amount);
+        return;
+    }
     /*
      * If the shift amount is large, triple rotation is
      * inefficient because it moves each bit 3 times.
