@@ -2,10 +2,10 @@
 
 Group: deliana-georgiou
 Writeup (out of 5): 1
-Test Coverage (out of 10): 3.29304131560549
+Test Coverage (out of 10): 7.49597659107535
 Correctness (out of 15): 15
 Performance (out of 15): 9.63994270350424
 
 Bonus points for fastest beta (out of 5): 0
 
-Total (out of 45): 28.9329840191097
+Total (out of 45): 33.1359192945796
