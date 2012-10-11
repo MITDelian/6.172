@@ -1,0 +1,5 @@
+usage: ./everybit
+	 -r Run a sample long-running rotation operation
+	    (note: for now the provided -r option tests only performance but not correctness.)
+	 -t tests/default	Run all tests in the testfile tests/default
+	 -n 1 -t tests/default	Run test 1 in the testfile tests/default

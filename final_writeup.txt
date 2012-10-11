@@ -1,0 +1,31 @@
+Since Thomas dropped the class, he did not attend the POSSE meeting, so these notes are just Delian's:
+
+My mentor mentioned that he liked our method and our bit hacks that we made, but that our code was unreadable because of a lack of comments.
+After we implemented our initial algorithm, I went back and edited a lot of our variable names and added comments that explained our algorithm and some of the bit hacks we were using.
+Otherwise, the mentor made me think about the number of operations per bit that our algorithm was doing, which ended up influencing me a lot and change our algorithm.
+
+Code Design:
+Our algorithm changed significantly from the Beta since we also implemented a swapping algorithm that works as the following:
+
+Let's call the original array A. Let's call the amount is shifted B.
+
+So the current array we have looks like AB and we want BA.
+WLOG, let len(B) > len(A):
+Split B into B_L, B_R, where len(B_R) = len(A), that is:
+
+A B_L B_R
+
+Since len(B_R) = len(A), we can swap those parts of the array so it looks like:
+
+B_R B_L A
+
+Now A is in its final place and we can run the algorithm on (B_R B_L) where B_R is the new A, and B_L is the new B.
+
+This algorithm handles each bit less than the triple-reversal algorithm, resulting in a faster run-time, however, the overhead in the swapping is not worth it if len(A) is small.
+
+So, as a method of coarsening, as soon as either len(A) or len(B) is less than 256, we resort back to the original triple-reversal algorithm.
+
+As a test suite, I tried to test our swapping method by creating large arrays to run through our algorithm as well as testing the smaller, basic cases.
+I believe the code is complete and the performance is currently at 82 microseconds.
+
+As a final note, I feel like I learned a lot about C through this project and have been really enjoying 6.172 :)
